@@ -263,8 +263,7 @@ pre[data-line] .line-highlight[data-end]:after {
     </head>
     <body for="html-export">
       <div class="mume markdown-preview  ">
-      <h1 class="mume-header" id="cria%C3%A7%C3%A3o-e-termina%C3%A7%C3%A3o-de-processos">Cria&#xE7;&#xE3;o e termina&#xE7;&#xE3;o de processos</h1>
-
+      <h1 style="text-align: center;">Cria&#xE7;&#xE3;o e termina&#xE7;&#xE3;o de processos</h1>
 <p>A fun&#xE7;&#xE3;o fork &#xE9; invocada 1 vez, mas tem 2 retornos e tem 2 fluxos de execu&#xE7;&#xE3;o.<br>
 Ap&#xF3;s a chamada fork() pai e filho executam o mesmo c&#xF3;digo.</p>
 <pre data-role="codeBlock" data-info="C" class="language-c"><span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
@@ -288,7 +287,6 @@ pid_t pid <span class="token operator">=</span> <span class="token function">for
 Para que os processos executem diferentes c&#xF3;digos, utiliza-se uma chamada <strong>exec(&quot;Prog_novo&quot;, ...)</strong> (exs: servidores - o pai espera por um cliente; quando o cliente chega, passa o processo para o filho que vai resolve-lo; o pai volta a ficar a espera de um cliente). Outra hip&#xF3;tese &#xE9; nos casos em que um processo quer executar um programa diferente (exs: shells - o filho faz exec (do comando) depois de retornar do fork.</p>
 <p>exemplo aula</p>
 <p>fun&#xE7;&#xF5;es getpid (retorna pid do filho) e getppid (retorna pid do pai).</p>
-<hr>
 <p>A fun&#xE7;ao fork pode falhar quando o n&#xBA; total de processos no sistema &#xE9; muito elevado.</p>
 <p>Os processos podem terminar de duas formas: normal (O argumento das fun&#xE7;&#xF5;es exit ( o exit status ); indica ao proc. pai como &#xE9; que o proc.-filho<br>
 terminou (termination status) e anormal (O termination status do processo &#xE9; gerado pelo kernel)</p>
@@ -298,6 +296,60 @@ terminou (termination status) e anormal (O termination status do processo &#xE9;
 <p>O wait espera por que um qualquer filho termine, e depois recolhe o seu sinal.<br>
 O waitpid sabe qual &#xE9; o pid do filho pelo qual tem de esperar.</p>
 <p>O argumento options de waitpid &#xE9; &#xFA;til quando toma o valor WNOHANG que permite que o pai n&#xE3;o fique pendurado &#xE0; espera que o processo filho especificado por pid esteja dispon&#xED;vel. Se o pid em waitpid for -1 e options for WNOHANG, isto permite que o processo pai n&#xE3;o tenha de esperar por nenhum dos processos filhos caso estes demorem mais.</p>
+<p><strong>WNOHANG -</strong> indica que waitpid() n&#xE3;o bloqueia se o filho especificado por pid n&#xE3;o estiver imediatamente dispon&#xED;vel (terminado). Neste caso o valor de retorno &#xE9; igual a 0.<br>
+<strong>WUNTRACED -</strong> indica que, se a implementa&#xE7;&#xE3;o suportar job control, o estado de termina&#xE7;&#xE3;o de qualquer filho especificado por pid que tenha terminado e cujo status ainda n&#xE3;o tenha sido reportado desde que ele parou, &#xE9; agora retornado.</p>
+<p>Um processo que invoque wait() ou waitpid() pode:</p>
+<ul>
+<li>bloquear - se nenhum dos seus filhos ainda n&#xE3;o tiver terminado;</li>
+<li>retornar imediatamente com o c&#xF3;digo de termina&#xE7;&#xE3;o de um filho - se um filho tiver terminado e estiver &#xE0; espera de retornar o seu c&#xF3;digo de termina&#xE7;&#xE3;o (filho zombie).</li>
+<li>retornar imediatamente com um erro - se n&#xE3;o tiver filhos.</li>
+</ul>
+<p>Diferen&#xE7;as entre wait() e waitpid():</p>
+<ul>
+<li>servi&#xE7;o wait() pode bloquear o processo que o invoca at&#xE9; que um filho qualquer termine;</li>
+<li>servi&#xE7;o waitpid() tem uma op&#xE7;&#xE3;o que impede o bloqueio (&#xFA;til quando se quer apenas obter o c&#xF3;digo de termina&#xE7;&#xE3;o do filho);</li>
+<li>waitpid() n&#xE3;o espera que o 1&#xBA; filho termine, tem um argumento para indicar o processo pelo qual se quer esperar.</li>
+</ul>
+<p>O argumento status de waitpid() pode ser NULL ou apontar para um inteiro; no caso de ser &#x2260; NULL - o c&#xF3;digo de termina&#xE7;&#xE3;o do processo que terminou &#xE9; guardado na posi&#xE7;&#xE3;o indicada por status; no caso de ser = NULL - o c&#xF3;digo de termina&#xE7;&#xE3;o &#xE9; ignorado.</p>
+<p>Quando se usam v&#xE1;rios forks consecutivos, conv&#xE9;m que de vez enquanto se fa&#xE7;a um ciclo com um wait para ver se algum dos processos filho ja terminou. Para isso, &#xE0; medida que se vai criando filhos, guarda-se os pid&apos;s destes num array por exemplo e depois no ciclo faz-se por ex. waitpid(array[pid-1]).</p>
+<hr>
+<h1 style="text-align: center;">Sinais</h1>
+<p>Um sinal &#xE9;:</p>
+<ul>
+<li>uma notifica&#xE7;&#xE3;o, por software, de um acontecimento</li>
+<li>uma forma, muito limitada, de comunica&#xE7;&#xE3;o entre processos</li>
+</ul>
+<p>Um sinal ode ter origem no teclado (certas combina&#xE7;&#xF5;es de teclas), no hardware (refer&#xEA;ncia inv&#xE1;lida &#xE0; mem&#xF3;ria), na fun&#xE7;&#xE3;o de sistema kill (permite que um processo envie um sinal a outro processo ou conjunto de processos), no comando kill (permite enviar um sinal a um processo ou conjunto de processosa partir de shell) ou no software (certos acontecimentos gerados por software d&#xE3;o origem a sinais).</p>
+<p>Os sinais podem ser gerados sincronamente ou assincronamente.<br>
+Todos os sinais t&#xEA;m um nome simb&#xF3;lico que come&#xE7;a por SIG.<br>
+Respostas poss&#xED;veis a um sinal:</p>
+<ul>
+<li>Ignorar - a maior parte pode ser ignorada, exceto SIGKILL e SIGSTOP;</li>
+<li>Tratar (catch) - indicar uma fun&#xE7;&#xE3;o a executar quando o sinal correr;</li>
+<li>Executar a a&#xE7;&#xE3;o por omiss&#xE3;o - todos os sinais t&#xEA;m uma a&#xE7;&#xE3;o por omiss&#xE3;o</li>
+</ul>
+<p><strong>Chamada signal</strong> permite associar uma rotina de tratamento (signal handler) a um determinado sinal. (ex: signal(SIGINT, inthandler) ou signal(SIGINT, SIG_IGN) quando &#xE9; poss&#xED;vel ignorar o sinal)</p>
+<p>Signal &#xE9; uma fun&#xE7;&#xE3;o que tem como</p>
+<ul>
+<li><strong>argumentos</strong><br>
+um inteiro (o n&#xFA;mero de um sinal)<br>
+um apontador p/ uma fun&#xE7;&#xE3;o do tipo sigfunc (o novo signal handler)</li>
+<li><strong>valor de retorno</strong><br>
+um apontador p/uma fun&#xE7;&#xE3;o do tipo sigfunc (o signal handler anterior) ou SIG_ERR se aconteceu um erro</li>
+</ul>
+<p>Outras constantes declaradas em &lt;signal.h&gt;:</p>
+<ul>
+<li><strong>SIG_ERR</strong><br>
+usada para testar se signal retornou erro<br>
+if (signal(SIGUSR1, usrhandler) == SIG_ERR) &#x2026;;</li>
+<li><strong>SIG_DFL</strong><br>
+usada como 2&#xBA; argumento de signal<br>
+indica que deve ser usado o handler por omiss&#xE3;o para o sinal especificado como 1&#xBA; argumento</li>
+<li><strong>SIG_IGN</strong><br>
+usada como 2&#xBA; argumento de signal<br>
+indica que o sinal especificado como 1&#xBA; argumento deve ser ignorado</li>
+</ul>
+<p>ex: define SIG_IGN (void (*) (int)) 1 - apontador para uma fun&#xE7;&#xE3;o que tem como parametro um inteiro e que retorna void</p>
 
       </div>
       
