@@ -13,7 +13,7 @@
 | tar | Compress/ decompress files |
 | mkdir | Make a new directory |
 | ln | Create a shortcut/ link |
-| rmdir | remove directory |
+| rmdir | Remove directory |
 | mv | Move files or directories |
 | find | Search for a file or directory |
 | which | Find commands and their location |
