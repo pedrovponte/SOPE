@@ -118,7 +118,65 @@ Quando se usam vários forks consecutivos, convém que de vez enquanto se faça 
 
 ## **Funções exec()**
 
+exec - iniciar novos programas (quando um processo invoca exec, o processo é completamente substituído por um novo programa).
 
+```C
+# include <unistd.h>
+int execl (const char *pathname, const char *arg0, … /* (char *)0 */);
+int execv (const char *pathname, char *const argv[]);
+int execle(const char *pathname, const char *arg0, … /* (char *)0, char *const envp[] */);
+int execve(const char *pathname, char *const argv[], char *const envp[]);
+int execlp(const char *filename, const char *arg0, … /* (char *)0 */);
+int execvp(const char *filename, char *const argv[]);
+
+Retorno:
+    não há - se houve sucesso
+    -1 - se houve erro
+```
+Diferenças entre as 6 funções: estão relacionadas com as letras l, v e p acrescentadas a exec.
+Lista de argumentos:
+
+* **l** - Lista, passados um a um separadamente, terminados por um apontador nulo.
+* **v** - Vector, passados num vector.
+  
+Passagem das strings de ambiente (environment):
+* **e** - Passa-se um apontador para um array de apontadores para as strings .
+* **sem e** - Usar a variável environ se for necessário aceder às variáveis de ambiente no novo programa.
+
+Path:
+
+* **p** - O argumento é o nome do ficheiro executável.
+  - Se o path não for especificado, o ficheiro é procurado
+nos directórios especificados pela variável de ambiente PATH.
+  - Se o ficheiro não for um executável (em código máquina)
+assume-se que pode ser um shell script e
+tenta-se invocar /bin/sh com o nome do ficheiro como entrada p/ a shell.
+* **sem p** - O nome do ficheiro executável deve incluir o path.
+
+![](./Imagens/exec.png)
+
+## **Função system**
+
+* Usada para executar um comando do interior de um programa.
+    - Ex: system ("date > file")
+* Não é uma interface para o sistema operativo mas para uma shell.
+* É implementada recorrendo a fork, exec e waitpid.
+
+```C
+# include <stdlib.h>
+int system(const char *cmdstring);
+```
+
+Retorno de system:
+* Se cmdstring = null pointer
+  - retorna valor  0 só se houver um processador de comandos disponível (útil p/ saber se esta função é suportada num dado S.O.; em UNIX é sempre suportada)
+* Senão retorna
+  - -1
+    • se fork falhou ou
+    • waitpid retornou um erro $\neq$ EINTR (indica que a chamada de sistema foi interrompida)
+  - 127
+    • se exec falhou
+  - termination status da shell, no formato especificado por waitpid, quando as chamadas fork, exec e waitpid forem bem sucedidas.
 
 -------
 
