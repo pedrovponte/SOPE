@@ -10,8 +10,9 @@ int main(){
 }
 ```
 
-Na sequência de um fork, vão resultar 2 processos, que vão ser executados 2 vezes, uma pelo fork e outra pelo que resultou do fork, pelo que neste caso vão ser imprimidas 2 vezes "Hello". Se o fork retornar o pid do processo filho, o processo original continua. Se retornar 0, então inicia-se um novo processo (processo filho).
+Na sequência de um fork, vão resultar 2 processos, que vão ser executados 2 vezes, uma pelo fork e outra pelo que resultou do fork, pelo que neste caso vão ser imprimidas 2 vezes "Hello". Se o fork retornar o pid do processo filho, o processo original continua (processo pai). Se retornar 0, então inicia-se um novo processo (processo filho). Se retornar -1, então ocorreu um erro no processo.
 
+Para que pai e filho executem diferentes segmentos de código (objetivo de utilizar a função fork()), tem de se utilizar as intruções condicionais. Deste modo, o valor de retorno do fork(), já vai ser diferente para pai e filho.
 ```C
 int main(){
     pid_t pid = fork();
@@ -25,6 +26,8 @@ int main(){
 
 Deste modo, só vai haver uma execução de um processo, caso pid > 0 será o processo pai, case pid = 0 será o processo filho.
 
+![](./Imagens/fork.png)
+
 ```C
 pid_t pid = fork(); (program counter pai) (retorna 1235)
 pid_t pid = fork(); (program counter filho) (retorna 0)
@@ -35,40 +38,87 @@ Estes 2 processos correm em paralelo, não há garantia que haja um que execute 
 Normalmente o que se pretende fazer com o fork é que o processo pai e o processo filho executem diferentes tarefas.
 Para que os processos executem diferentes códigos, utiliza-se uma chamada **exec("Prog_novo", ...)** (exs: servidores - o pai espera por um cliente; quando o cliente chega, passa o processo para o filho que vai resolve-lo; o pai volta a ficar a espera de um cliente). Outra hipótese é nos casos em que um processo quer executar um programa diferente (exs: shells - o filho faz exec (do comando) depois de retornar do fork.
 
-exemplo aula
+funções **getpid** (retorna pid do filho) e **getppid** (retorna pid do pai).
 
-funções getpid (retorna pid do filho) e getppid (retorna pid do pai).
+A funçao fork pode falhar quando o nº total de processos no sistema ou do utilizador é muito elevado.
 
-A funçao fork pode falhar quando o nº total de processos no sistema é muito elevado.
+Os processos podem terminar de duas formas: 
 
-Os processos podem terminar de duas formas: normal (O argumento das funções exit ( o exit status ); indica ao proc. pai como é que o proc.-filho
-terminou (termination status) e anormal (O termination status do processo é gerado pelo kernel)
+* **Normal -** O argumento das funções exit (o exit status) indica ao proc. pai como é que o proc. filho terminou (termination status);
+* **Anormal -** O termination status do processo é gerado pelo kernel.
 
-**Processos Orfãos -** pai termina antes do filho
-**Processos zombie -** Um processo que termina não pode deixar o sistema até que o seu pai aceite o seu código de retorno, através da execução de uma chamada wait / waitpid.
+O processo-pai pode obter o valor do termination status através das funções wait ou waitpid.
+
+![](./Imagens/terminacao_processo.png)
+
+## **Processos Orfãos**  
+
+Casos em que o pai termina antes do filho. Neste caso, o filho é automaticamente aotado por init (processo com PID igual a 1).
+Deste modo, qualquer processo tem um pai.
+Quando o processo pai termina, o kernel percorre todos os processoa ativos a ver se algum deles é filho deste processo que terminou. Nesse caso, o PID desse processo passa a ser 1.
+
+## **Processos Zombie**  
+
+Um processo que termina não pode deixar o sistema até que o seu pai aceite o seu código de retorno, através da execução de uma chamada wait / waitpid.
 **Zombie -** Um processo que terminou, mas cujo pai ainda não executou um dos wait's.
+A informação sobre o processo filho não pode desaparecer completamente. Assim, o kernel mantém essa informação de modo a que ela esteja disponível quando o pai executar um dos wait's. O resto da memória ocupada pelo processo filho é libertada e o processo é fechado.
+
+## **Funções wait e waitpid**
+
+Quando um processo termina, o kernel notifica o seu pai enviando-lhe um sinal (SIGCHLD). O pai pode:
+
+* Ignorar o sinal - Se o processo indicar que quer ignorar o sinal, os filhos não ficam zombies.
+* Dispor de signal handler - O handler poderá executar um dos wait's para obter a PID do filho e o seu termination status.
+
+```C
+pid_t wait(int *statloc);
+pid_t waitpid(pid_t pid, int *statloc, int options);
+```
 
 O wait espera por que um qualquer filho termine, e depois recolhe o seu sinal.
 O waitpid sabe qual é o pid do filho pelo qual tem de esperar.
+
+O argumento statloc:
+
+* $\neq$ NULL - o termination status do processo que terminou é guardado na posição indicada por statloc;
+* = NULL - o termination status é ignorado.
+
+O argumento pid de waitpid:
+
+* pid == -1 - espera por um filho qualquer ($\equiv$ wait);
+* pid > 0 - espera pelo filho com a PID indicada;
+* pid == 0 - espera por um qualquer filho do mesmo process group;
+* pid < -1 - espera por um qualquer filho cuja process group ID seja igual a valor_absoluto(pid).
 
 O argumento options de waitpid é útil quando toma o valor WNOHANG que permite que o pai não fique pendurado à espera que o processo filho especificado por pid esteja disponível. Se o pid em waitpid for -1 e options for WNOHANG, isto permite que o processo pai não tenha de esperar por nenhum dos processos filhos caso estes demorem mais.
 
 **WNOHANG -** indica que waitpid() não bloqueia se o filho especificado por pid não estiver imediatamente disponível (terminado). Neste caso o valor de retorno é igual a 0.
 **WUNTRACED -** indica que, se a implementação suportar job control, o estado de terminação de qualquer filho especificado por pid que tenha terminado e cujo status ainda não tenha sido reportado desde que ele parou, é agora retornado.
 
+waitpid retorna um erro (valor de retorno = -1) se:
+
+* o processo especificado não existir ;
+* o processo especificado não for filho do processo que a
+invocou ;
+* o grupo de processos não existir .
+
 Um processo que invoque wait() ou waitpid() pode:
+
 * bloquear - se nenhum dos seus filhos ainda não tiver terminado;
 * retornar imediatamente com o código de terminação de um filho - se um filho tiver terminado e estiver à espera de retornar o seu código de terminação (filho zombie).
 * retornar imediatamente com um erro - se não tiver filhos.
 
 Diferenças entre wait() e waitpid():
+
 * serviço wait() pode bloquear o processo que o invoca até que um filho qualquer termine;
 * serviço waitpid() tem uma opção que impede o bloqueio (útil quando se quer apenas obter o código de terminação do filho);
 * waitpid() não espera que o 1º filho termine, tem um argumento para indicar o processo pelo qual se quer esperar.
 
-O argumento status de waitpid() pode ser NULL ou apontar para um inteiro; no caso de ser ≠ NULL - o código de terminação do processo que terminou é guardado na posição indicada por status; no caso de ser = NULL - o código de terminação é ignorado. 
+Quando se usam vários forks consecutivos, convém que de vez enquanto se faça um ciclo com um wait para ver se algum dos processos filho ja terminou. Para isso, à medida que se vai criando filhos, guarda-se os pid's destes num array, por exemplo, e depois no ciclo faz-se por ex. waitpid(array[pid-1]).
 
-Quando se usam vários forks consecutivos, convém que de vez enquanto se faça um ciclo com um wait para ver se algum dos processos filho ja terminou. Para isso, à medida que se vai criando filhos, guarda-se os pid's destes num array por exemplo e depois no ciclo faz-se por ex. waitpid(array[pid-1]).
+## **Funções exec()**
+
+
 
 -------
 
