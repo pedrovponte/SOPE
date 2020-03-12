@@ -270,7 +270,8 @@ Ap&#xF3;s a chamada fork() pai e filho executam o mesmo c&#xF3;digo.</p>
     pid_t pid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">&quot;Hello&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
-</pre><p>Na sequ&#xEA;ncia de um fork, v&#xE3;o resultar 2 processos, que v&#xE3;o ser executados 2 vezes, uma pelo fork e outra pelo que resultou do fork, pelo que neste caso v&#xE3;o ser imprimidas 2 vezes &quot;Hello&quot;. Se o fork retornar o pid do processo filho, o processo original continua. Se retornar 0, ent&#xE3;o inicia-se um novo processo (processo filho).</p>
+</pre><p>Na sequ&#xEA;ncia de um fork, v&#xE3;o resultar 2 processos, que v&#xE3;o ser executados 2 vezes, uma pelo fork e outra pelo que resultou do fork, pelo que neste caso v&#xE3;o ser imprimidas 2 vezes &quot;Hello&quot;. Se o fork retornar o pid do processo filho, o processo original continua (processo pai). Se retornar 0, ent&#xE3;o inicia-se um novo processo (processo filho). Se retornar -1, ent&#xE3;o ocorreu um erro no processo.</p>
+<p>Para que pai e filho executem diferentes segmentos de c&#xF3;digo (objetivo de utilizar a fun&#xE7;&#xE3;o fork()), tem de se utilizar as intru&#xE7;&#xF5;es condicionais. Deste modo, o valor de retorno do fork(), j&#xE1; vai ser diferente para pai e filho.</p>
 <pre data-role="codeBlock" data-info="C" class="language-c"><span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     pid_t pid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">&quot;Hello&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -280,24 +281,64 @@ Ap&#xF3;s a chamada fork() pai e filho executam o mesmo c&#xF3;digo.</p>
         <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">&quot;Hello from son\n&quot;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </pre><p>Deste modo, s&#xF3; vai haver uma execu&#xE7;&#xE3;o de um processo, caso pid &gt; 0 ser&#xE1; o processo pai, case pid = 0 ser&#xE1; o processo filho.</p>
+<p><img src="./Imagens/fork.png" alt></p>
 <pre data-role="codeBlock" data-info="C" class="language-c">pid_t pid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>program counter pai<span class="token punctuation">)</span> <span class="token punctuation">(</span>retorna <span class="token number">1235</span><span class="token punctuation">)</span>
 pid_t pid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>program counter filho<span class="token punctuation">)</span> <span class="token punctuation">(</span>retorna <span class="token number">0</span><span class="token punctuation">)</span>
 </pre><p>Estes 2 processos correm em paralelo, n&#xE3;o h&#xE1; garantia que haja um que execute primeiro do que o outro.</p>
 <p>Normalmente o que se pretende fazer com o fork &#xE9; que o processo pai e o processo filho executem diferentes tarefas.<br>
 Para que os processos executem diferentes c&#xF3;digos, utiliza-se uma chamada <strong>exec(&quot;Prog_novo&quot;, ...)</strong> (exs: servidores - o pai espera por um cliente; quando o cliente chega, passa o processo para o filho que vai resolve-lo; o pai volta a ficar a espera de um cliente). Outra hip&#xF3;tese &#xE9; nos casos em que um processo quer executar um programa diferente (exs: shells - o filho faz exec (do comando) depois de retornar do fork.</p>
-<p>exemplo aula</p>
-<p>fun&#xE7;&#xF5;es getpid (retorna pid do filho) e getppid (retorna pid do pai).</p>
-<p>A fun&#xE7;ao fork pode falhar quando o n&#xBA; total de processos no sistema &#xE9; muito elevado.</p>
-<p>Os processos podem terminar de duas formas: normal (O argumento das fun&#xE7;&#xF5;es exit ( o exit status ); indica ao proc. pai como &#xE9; que o proc.-filho<br>
-terminou (termination status) e anormal (O termination status do processo &#xE9; gerado pelo kernel)</p>
-<p><strong>Processos Orf&#xE3;os -</strong> pai termina antes do filho<br>
-<strong>Processos zombie -</strong> Um processo que termina n&#xE3;o pode deixar o sistema at&#xE9; que o seu pai aceite o seu c&#xF3;digo de retorno, atrav&#xE9;s da execu&#xE7;&#xE3;o de uma chamada wait / waitpid.<br>
-<strong>Zombie -</strong> Um processo que terminou, mas cujo pai ainda n&#xE3;o executou um dos wait&apos;s.</p>
-<p>O wait espera por que um qualquer filho termine, e depois recolhe o seu sinal.<br>
+<p>fun&#xE7;&#xF5;es <strong>getpid</strong> (retorna pid do filho) e <strong>getppid</strong> (retorna pid do pai).</p>
+<p>A fun&#xE7;ao fork pode falhar quando o n&#xBA; total de processos no sistema ou do utilizador &#xE9; muito elevado.</p>
+<p>Os processos podem terminar de duas formas:</p>
+<ul>
+<li><strong>Normal -</strong> O argumento das fun&#xE7;&#xF5;es exit (o exit status) indica ao proc. pai como &#xE9; que o proc. filho terminou (termination status);</li>
+<li><strong>Anormal -</strong> O termination status do processo &#xE9; gerado pelo kernel.</li>
+</ul>
+<p>O processo-pai pode obter o valor do termination status atrav&#xE9;s das fun&#xE7;&#xF5;es wait ou waitpid.</p>
+<p><img src="./Imagens/terminacao_processo.png" alt></p>
+<h2 class="mume-header" id="processos-orf%C3%A3os"><strong>Processos Orf&#xE3;os</strong></h2>
+
+<p>Casos em que o pai termina antes do filho. Neste caso, o filho &#xE9; automaticamente aotado por init (processo com PID igual a 1).<br>
+Deste modo, qualquer processo tem um pai.<br>
+Quando o processo pai termina, o kernel percorre todos os processoa ativos a ver se algum deles &#xE9; filho deste processo que terminou. Nesse caso, o PID desse processo passa a ser 1.</p>
+<h2 class="mume-header" id="processos-zombie"><strong>Processos Zombie</strong></h2>
+
+<p>Um processo que termina n&#xE3;o pode deixar o sistema at&#xE9; que o seu pai aceite o seu c&#xF3;digo de retorno, atrav&#xE9;s da execu&#xE7;&#xE3;o de uma chamada wait / waitpid.<br>
+<strong>Zombie -</strong> Um processo que terminou, mas cujo pai ainda n&#xE3;o executou um dos wait&apos;s.<br>
+A informa&#xE7;&#xE3;o sobre o processo filho n&#xE3;o pode desaparecer completamente. Assim, o kernel mant&#xE9;m essa informa&#xE7;&#xE3;o de modo a que ela esteja dispon&#xED;vel quando o pai executar um dos wait&apos;s. O resto da mem&#xF3;ria ocupada pelo processo filho &#xE9; libertada e o processo &#xE9; fechado.</p>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-wait-e-waitpid"><strong>Fun&#xE7;&#xF5;es wait e waitpid</strong></h2>
+
+<p>Quando um processo termina, o kernel notifica o seu pai enviando-lhe um sinal (SIGCHLD). O pai pode:</p>
+<ul>
+<li>Ignorar o sinal - Se o processo indicar que quer ignorar o sinal, os filhos n&#xE3;o ficam zombies.</li>
+<li>Dispor de signal handler - O handler poder&#xE1; executar um dos wait&apos;s para obter a PID do filho e o seu termination status.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c">pid_t <span class="token function">wait</span><span class="token punctuation">(</span><span class="token keyword">int</span> <span class="token operator">*</span>statloc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+pid_t <span class="token function">waitpid</span><span class="token punctuation">(</span>pid_t pid<span class="token punctuation">,</span> <span class="token keyword">int</span> <span class="token operator">*</span>statloc<span class="token punctuation">,</span> <span class="token keyword">int</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</pre><p>O wait espera por que um qualquer filho termine, e depois recolhe o seu sinal.<br>
 O waitpid sabe qual &#xE9; o pid do filho pelo qual tem de esperar.</p>
+<p>O argumento statloc:</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo mathvariant="normal">&#x2260;</mo></mrow><annotation encoding="application/x-tex">\neq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel">&#xE020;</span></span><span class="fix"></span></span></span></span><span class="vlist-s">&#x200B;</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span></span></span></span> NULL - o termination status do processo que terminou &#xE9; guardado na posi&#xE7;&#xE3;o indicada por statloc;</li>
+<li>= NULL - o termination status &#xE9; ignorado.</li>
+</ul>
+<p>O argumento pid de waitpid:</p>
+<ul>
+<li>pid == -1 - espera por um filho qualquer (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&#x2261;</mo></mrow><annotation encoding="application/x-tex">\equiv</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.46375em;vertical-align:0em;"></span><span class="mrel">&#x2261;</span></span></span></span> wait);</li>
+<li>pid &gt; 0 - espera pelo filho com a PID indicada;</li>
+<li>pid == 0 - espera por um qualquer filho do mesmo process group;</li>
+<li>pid &lt; -1 - espera por um qualquer filho cuja process group ID seja igual a valor_absoluto(pid).</li>
+</ul>
 <p>O argumento options de waitpid &#xE9; &#xFA;til quando toma o valor WNOHANG que permite que o pai n&#xE3;o fique pendurado &#xE0; espera que o processo filho especificado por pid esteja dispon&#xED;vel. Se o pid em waitpid for -1 e options for WNOHANG, isto permite que o processo pai n&#xE3;o tenha de esperar por nenhum dos processos filhos caso estes demorem mais.</p>
 <p><strong>WNOHANG -</strong> indica que waitpid() n&#xE3;o bloqueia se o filho especificado por pid n&#xE3;o estiver imediatamente dispon&#xED;vel (terminado). Neste caso o valor de retorno &#xE9; igual a 0.<br>
 <strong>WUNTRACED -</strong> indica que, se a implementa&#xE7;&#xE3;o suportar job control, o estado de termina&#xE7;&#xE3;o de qualquer filho especificado por pid que tenha terminado e cujo status ainda n&#xE3;o tenha sido reportado desde que ele parou, &#xE9; agora retornado.</p>
+<p>waitpid retorna um erro (valor de retorno = -1) se:</p>
+<ul>
+<li>o processo especificado n&#xE3;o existir ;</li>
+<li>o processo especificado n&#xE3;o for filho do processo que a<br>
+invocou ;</li>
+<li>o grupo de processos n&#xE3;o existir .</li>
+</ul>
 <p>Um processo que invoque wait() ou waitpid() pode:</p>
 <ul>
 <li>bloquear - se nenhum dos seus filhos ainda n&#xE3;o tiver terminado;</li>
@@ -310,8 +351,77 @@ O waitpid sabe qual &#xE9; o pid do filho pelo qual tem de esperar.</p>
 <li>servi&#xE7;o waitpid() tem uma op&#xE7;&#xE3;o que impede o bloqueio (&#xFA;til quando se quer apenas obter o c&#xF3;digo de termina&#xE7;&#xE3;o do filho);</li>
 <li>waitpid() n&#xE3;o espera que o 1&#xBA; filho termine, tem um argumento para indicar o processo pelo qual se quer esperar.</li>
 </ul>
-<p>O argumento status de waitpid() pode ser NULL ou apontar para um inteiro; no caso de ser &#x2260; NULL - o c&#xF3;digo de termina&#xE7;&#xE3;o do processo que terminou &#xE9; guardado na posi&#xE7;&#xE3;o indicada por status; no caso de ser = NULL - o c&#xF3;digo de termina&#xE7;&#xE3;o &#xE9; ignorado.</p>
-<p>Quando se usam v&#xE1;rios forks consecutivos, conv&#xE9;m que de vez enquanto se fa&#xE7;a um ciclo com um wait para ver se algum dos processos filho ja terminou. Para isso, &#xE0; medida que se vai criando filhos, guarda-se os pid&apos;s destes num array por exemplo e depois no ciclo faz-se por ex. waitpid(array[pid-1]).</p>
+<p>Quando se usam v&#xE1;rios forks consecutivos, conv&#xE9;m que de vez enquanto se fa&#xE7;a um ciclo com um wait para ver se algum dos processos filho ja terminou. Para isso, &#xE0; medida que se vai criando filhos, guarda-se os pid&apos;s destes num array, por exemplo, e depois no ciclo faz-se por ex. waitpid(array[pid-1]).</p>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-exec"><strong>Fun&#xE7;&#xF5;es exec()</strong></h2>
+
+<p>exec - iniciar novos programas (quando um processo invoca exec, o processo &#xE9; completamente substitu&#xED;do por um novo programa).</p>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property"># <span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">execl</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>pathname<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>arg0<span class="token punctuation">,</span> &#x2026; <span class="token comment">/* (char *)0 */</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">execv</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>pathname<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token keyword">const</span> argv<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">execle</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>pathname<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>arg0<span class="token punctuation">,</span> &#x2026; <span class="token comment">/* (char *)0, char *const envp[] */</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">execve</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>pathname<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token keyword">const</span> argv<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token keyword">const</span> envp<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">execlp</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>filename<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>arg0<span class="token punctuation">,</span> &#x2026; <span class="token comment">/* (char *)0 */</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">execvp</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>filename<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token keyword">const</span> argv<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span>
+    n&#xE3;o h&#xE1; <span class="token operator">-</span> se houve sucesso
+    <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">-</span> se houve erro
+</pre><p>Diferen&#xE7;as entre as 6 fun&#xE7;&#xF5;es: est&#xE3;o relacionadas com as letras l, v e p acrescentadas a exec.<br>
+Lista de argumentos:</p>
+<ul>
+<li><strong>l</strong> - Lista, passados um a um separadamente, terminados por um apontador nulo.</li>
+<li><strong>v</strong> - Vector, passados num vector.</li>
+</ul>
+<p>Passagem das strings de ambiente (environment):</p>
+<ul>
+<li><strong>e</strong> - Passa-se um apontador para um array de apontadores para as strings .</li>
+<li><strong>sem e</strong> - Usar a vari&#xE1;vel environ se for necess&#xE1;rio aceder &#xE0;s vari&#xE1;veis de ambiente no novo programa.</li>
+</ul>
+<p>Path:</p>
+<ul>
+<li><strong>p</strong> - O argumento &#xE9; o nome do ficheiro execut&#xE1;vel.
+<ul>
+<li>Se o path n&#xE3;o for especificado, o ficheiro &#xE9; procurado<br>
+nos direct&#xF3;rios especificados pela vari&#xE1;vel de ambiente PATH.</li>
+<li>Se o ficheiro n&#xE3;o for um execut&#xE1;vel (em c&#xF3;digo m&#xE1;quina)<br>
+assume-se que pode ser um shell script e<br>
+tenta-se invocar /bin/sh com o nome do ficheiro como entrada p/ a shell.</li>
+</ul>
+</li>
+<li><strong>sem p</strong> - O nome do ficheiro execut&#xE1;vel deve incluir o path.</li>
+</ul>
+<p><img src="./Imagens/exec.png" alt></p>
+<h2 class="mume-header" id="fun%C3%A7%C3%A3o-system"><strong>Fun&#xE7;&#xE3;o system</strong></h2>
+
+<ul>
+<li>Usada para executar um comando do interior de um programa.
+<ul>
+<li>Ex: system (&quot;date &gt; file&quot;)</li>
+</ul>
+</li>
+<li>N&#xE3;o &#xE9; uma interface para o sistema operativo mas para uma shell.</li>
+<li>&#xC9; implementada recorrendo a fork, exec e waitpid.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property"># <span class="token directive keyword">include</span> <span class="token string">&lt;stdlib.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">system</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>cmdstring<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</pre><p>Retorno de system:</p>
+<ul>
+<li>Se cmdstring = null pointer
+<ul>
+<li>retorna valor &#xF0B9; 0 s&#xF3; se houver um processador de comandos dispon&#xED;vel (&#xFA;til p/ saber se esta fun&#xE7;&#xE3;o &#xE9; suportada num dado S.O.; em UNIX &#xE9; sempre suportada)</li>
+</ul>
+</li>
+<li>Sen&#xE3;o retorna
+<ul>
+<li>-1<br>
+&#x2022; se fork falhou ou<br>
+&#x2022; waitpid retornou um erro <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo mathvariant="normal">&#x2260;</mo></mrow><annotation encoding="application/x-tex">\neq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel">&#xE020;</span></span><span class="fix"></span></span></span></span><span class="vlist-s">&#x200B;</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span></span></span></span> EINTR (indica que a chamada de sistema foi interrompida)</li>
+<li>127<br>
+&#x2022; se exec falhou</li>
+<li>termination status da shell, no formato especificado por waitpid, quando as chamadas fork, exec e waitpid forem bem sucedidas.</li>
+</ul>
+</li>
+</ul>
 <hr>
 <h1 style="text-align: center;">Sinais</h1>
 <p>Um sinal &#xE9;:</p>
