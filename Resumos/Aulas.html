@@ -426,8 +426,8 @@ tenta-se invocar /bin/sh com o nome do ficheiro como entrada p/ a shell.</li>
 <h1 style="text-align: center;">Sinais</h1>
 <p>Um sinal &#xE9;:</p>
 <ul>
-<li>uma notifica&#xE7;&#xE3;o, por software, de um acontecimento</li>
-<li>uma forma, muito limitada, de comunica&#xE7;&#xE3;o entre processos</li>
+<li>uma notifica&#xE7;&#xE3;o, por software, de um acontecimento;</li>
+<li>uma forma, muito limitada, de comunica&#xE7;&#xE3;o entre processos.</li>
 </ul>
 <p>Um sinal ode ter origem no teclado (certas combina&#xE7;&#xF5;es de teclas), no hardware (refer&#xEA;ncia inv&#xE1;lida &#xE0; mem&#xF3;ria), na fun&#xE7;&#xE3;o de sistema kill (permite que um processo envie um sinal a outro processo ou conjunto de processos), no comando kill (permite enviar um sinal a um processo ou conjunto de processosa partir de shell) ou no software (certos acontecimentos gerados por software d&#xE3;o origem a sinais).</p>
 <p>Os sinais podem ser gerados sincronamente ou assincronamente.<br>
@@ -436,16 +436,30 @@ Respostas poss&#xED;veis a um sinal:</p>
 <ul>
 <li>Ignorar - a maior parte pode ser ignorada, exceto SIGKILL e SIGSTOP;</li>
 <li>Tratar (catch) - indicar uma fun&#xE7;&#xE3;o a executar quando o sinal correr;</li>
-<li>Executar a a&#xE7;&#xE3;o por omiss&#xE3;o - todos os sinais t&#xEA;m uma a&#xE7;&#xE3;o por omiss&#xE3;o</li>
+<li>Executar a a&#xE7;&#xE3;o por omiss&#xE3;o - todos os sinais t&#xEA;m uma a&#xE7;&#xE3;o por omiss&#xE3;o.</li>
 </ul>
-<p><strong>Chamada signal</strong> permite associar uma rotina de tratamento (signal handler) a um determinado sinal. (ex: signal(SIGINT, inthandler) ou signal(SIGINT, SIG_IGN) quando &#xE9; poss&#xED;vel ignorar o sinal)</p>
-<p>Signal &#xE9; uma fun&#xE7;&#xE3;o que tem como</p>
+<p><img src="./Imagens/exemplos_sinais.png" alt></p>
+<h2 class="mume-header" id="fun%C3%A7%C3%A3o-signal"><strong>Fun&#xE7;&#xE3;o signal</strong></h2>
+
+<p><strong>Chamada signal</strong> permite associar uma rotina de tratamento (signal handler) a um determinado sinal. (ex: signal(SIGINT, inthandler) ou signal(SIGINT, SIG_IGN) quando &#xE9; poss&#xED;vel ignorar o sinal).</p>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">void</span> <span class="token punctuation">(</span><span class="token operator">*</span><span class="token function">signal</span><span class="token punctuation">(</span><span class="token keyword">int</span> signo<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token punctuation">(</span><span class="token operator">*</span>func<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</pre><p>Simplificando:</p>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token keyword">typedef</span> <span class="token keyword">void</span> <span class="token function">sigfunc</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+sigfunc <span class="token operator">*</span><span class="token function">signal</span><span class="token punctuation">(</span><span class="token keyword">int</span> signo<span class="token punctuation">,</span> sigfunc <span class="token operator">*</span>func<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</pre><p>Signal &#xE9; uma fun&#xE7;&#xE3;o que tem como:</p>
 <ul>
-<li><strong>argumentos</strong><br>
-um inteiro (o n&#xFA;mero de um sinal)<br>
+<li><strong>argumentos</strong>
+<ul>
+<li>um inteiro (o n&#xFA;mero de um sinal);<br>
 um apontador p/ uma fun&#xE7;&#xE3;o do tipo sigfunc (o novo signal handler)</li>
-<li><strong>valor de retorno</strong><br>
-um apontador p/uma fun&#xE7;&#xE3;o do tipo sigfunc (o signal handler anterior) ou SIG_ERR se aconteceu um erro</li>
+</ul>
+</li>
+<li><strong>valor de retorno</strong>
+<ul>
+<li>um apontador p/uma fun&#xE7;&#xE3;o do tipo sigfunc (o signal handler anterior) ou SIG_ERR se aconteceu um erro</li>
+</ul>
+</li>
 </ul>
 <p>Outras constantes declaradas em &lt;signal.h&gt;:</p>
 <ul>
@@ -459,7 +473,266 @@ indica que deve ser usado o handler por omiss&#xE3;o para o sinal especificado c
 usada como 2&#xBA; argumento de signal<br>
 indica que o sinal especificado como 1&#xBA; argumento deve ser ignorado</li>
 </ul>
-<p>ex: define SIG_IGN (void (*) (int)) 1 - apontador para uma fun&#xE7;&#xE3;o que tem como parametro um inteiro e que retorna void</p>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">define</span> SIG_ERR (void (*) (int)) -1</span>
+<span class="token macro property">#<span class="token directive keyword">define</span> SIG_DFL (void (*) (int)) 0</span>
+<span class="token macro property">#<span class="token directive keyword">define</span> SIG_IGN (void (*) (int)) 1</span>
+</pre><p>Cast de -1 / 0 / 1 para um apontador para uma fun&#xE7;&#xE3;o que retorna void.<br>
+Os valores -1, 0 e 1 poderiam ser outros,<br>
+mas n&#xE3;o podem ser endere&#xE7;os de fun&#xE7;&#xF5;es declar&#xE1;veis.</p>
+<p>ex: define SIG_IGN (void (*) (int)) 1 - apontador para uma fun&#xE7;&#xE3;o que tem como parametro um inteiro e que retorna void.</p>
+<h2 class="mume-header" id="tratamento-de-sigchld">Tratamento de SIGCHLD</h2>
+
+<p>Quando um processo termina, o kernel envia o sinal SIGCHLD ao processo pai. O processo pai pode instalar um handler para SIGCHLD e executar wait()/ waitpid() no handler ou ent&#xE3;o pode ter anunciado que pretende ignorar SIGCHLD (neste caso, os filhos n&#xE3;o ficam no estado zombie; se o processo pai chamar wait(), esta chamada s&#xF3; retornar&#xE1; (-1) quando todos os filhos terminarem).</p>
+<h2 class="mume-header" id="tratamento-de-sinais-ap%C3%B3s-fork-exec">Tratamento de sinais ap&#xF3;s fork/ exec</h2>
+
+<p>Ap&#xF3;s fork:</p>
+<ul>
+<li>O tratamento dos sinais &#xE9; herdado pelo processo filho;</li>
+<li>O filho pode alterar o tratamento.</li>
+</ul>
+<p>Ap&#xF3;s exec:</p>
+<ul>
+<li>O estado de todos os sinais ser&#xE1; o tratamento por omiss&#xE3;o ou ignorar;</li>
+<li>Em geral ser&#xE1; o tratamento por omiss&#xE3;o. S&#xF3; ser&#xE1; ignorar se o processo que invocou exec estiver a ignorar o sinal;</li>
+<li>Ou seja, todos os sinais que estiverem a ser tratados passam a ter o tratamento por omiss&#xE3;o. O tratamento de todos os outros sinais mant&#xE9;m-se inalterado.</li>
+</ul>
+<p>Porque ser&#xE1;? Ao fazer exec, as rotinas de tratamento &quot;perdem-se&quot; pois o c&#xF3;digo j&#xE1; n&#xE3;o &#xE9; o mesmo.</p>
+<h2 class="mume-header" id="user-id-e-group-id">User ID e Group ID</h2>
+
+<p>Quando um processo executa, tem 4 valores associados a permiss&#xF5;es:</p>
+<ul>
+<li>real user ID, effective user ID, real group ID e effective group ID</li>
+<li>apenas as effective ID&apos;s afectam as permiss&#xF5;es de acesso, as real ID&apos;s s&#xF3; s&#xE3;o usadas para contabilidade;</li>
+<li>em geral, as permiss&#xF5;es de acesso de um processo dependem de quem o executa, n&#xE3;o de quem &#xE9; o dono do execut&#xE1;vel &#x2026;</li>
+<li>&#x2026; mas h&#xE1; situa&#xE7;&#xF5;es em que isto &#xE9; indesej&#xE1;vel
+<ul>
+<li>ex: num jogo em que os melhores resultados s&#xE3;o guardados num ficheiro, o processo do jogo deve ter acesso ao ficheiro de resultados, mas o jogador n&#xE3;o &#x2026;</li>
+</ul>
+</li>
+<li>Para que isso seja poss&#xED;vel existem 2 permiss&#xF5;es especiais (set-user-id e set-group-id). Quando um execut&#xE1;vel com set-user-id &#xE9; executado, a effective user ID do processo passa a ser a do execut&#xE1;vel. Idem para a effective group ID.
+<ul>
+<li>ex: se o execut&#xE1;vel do jogo tiver a permiss&#xE3;o set-user-id activada ter&#xE1; acesso ao ficheiro de pontua&#xE7;&#xF5;es;<br>
+este ter&#xE1; permiss&#xF5;es de escrita para o s/dono, impedindo o acesso de outros utilizadores;</li>
+</ul>
+</li>
+<li>API&apos;s: setuid, seteuid, setgid, setegid;</li>
+</ul>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-kill-e-raise">Fun&#xE7;&#xF5;es Kill e Raise</h2>
+
+<p><strong>Kill</strong></p>
+<ul>
+<li>envia um sinal a um processo ou a um conjunto de processos;</li>
+<li>n&#xE3;o tem necessariamente como consequ&#xEA;ncia o fim dos processos.</li>
+</ul>
+<p><strong>Raise</strong></p>
+<ul>
+<li>envia um sinal ao processo que a invocar.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;sys/types.h&gt;</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">kill</span> <span class="token punctuation">(</span>pid_t pid<span class="token punctuation">,</span> <span class="token keyword">int</span> signo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">raise</span> <span class="token punctuation">(</span><span class="token keyword">int</span> signo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro<span class="token punctuation">;</span>
+</pre><h2 class="mume-header" id="comando-kill">Comando Kill</h2>
+
+<p>kill [-signalID] {pid}+</p>
+<ul>
+<li>envia o sinal com c&#xF3;digo signalID &#xE0; lista de processos enumerados;</li>
+<li>signalID pode ser o n&#xFA;mero ou o nome de um sinal;</li>
+<li>por omiss&#xE3;o, &#xE9; enviado o sinal SIGTERM que causa a termina&#xE7;&#xE3;o do(s) processo(s) que o receber(em);</li>
+<li>s&#xF3; o dono do processo ou o superuser podem enviar o sinal</li>
+<li>os processos podem proteger-se dos sinais excepto de SIGKILL (c&#xF3;digo=9) e SIGSTOP (c&#xF3;digo=17).</li>
+</ul>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-alarm-e-pause">Fun&#xE7;&#xF5;es alarm e pause</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword">unsigned</span> <span class="token keyword">int</span> <span class="token function">alarm</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">int</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+<span class="token keyword">int</span> <span class="token function">pause</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token operator">-</span><span class="token number">1</span> com errno igual a EINTR
+</pre><p><strong>alarm</strong> (ularm, argumento em microsegundos)</p>
+<ul>
+<li>indica ao kernel para enviar um sinal de alarme (SIGALRM)<br>
+ao processo que a invocou, count segundos ap&#xF3;s a invoca&#xE7;&#xE3;o;</li>
+<li>se j&#xE1; tiver sido criado um alarme anteriormente, ele &#xE9; substitu&#xED;do pelo novo;</li>
+<li>se count = 0, algum alarme, eventualmente pendente, &#xE9; cancelado;</li>
+<li>retorna o n&#xFA;mero de segundos que faltam at&#xE9; que o sinal seja enviado.</li>
+</ul>
+<p><strong>pause</strong></p>
+<ul>
+<li>suspende o processo que a invocar, at&#xE9; que ele receba um sinal;</li>
+<li>a &#xFA;nica situa&#xE7;&#xE3;o em que a fun&#xE7;&#xE3;o retorna &#xE9; quando &#xE9; executado um signal handler e este retorna.</li>
+</ul>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-abort-e-sleep">Fun&#xE7;&#xF5;es abort e sleep</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdlib.h&gt;</span></span>
+<span class="token keyword">void</span> <span class="token function">abort</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+Retorno<span class="token operator">:</span> n&#xE3;o tem
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword">unsigned</span> <span class="token keyword">int</span> <span class="token function">sleep</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">int</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> ou o n&#xFA;mero de segundos que faltavam
+</pre><p><strong>abort</strong> (ANSI C; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&#x2261;</mo></mrow><annotation encoding="application/x-tex">\equiv</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.46375em;vertical-align:0em;"></span><span class="mrel">&#x2261;</span></span></span></span> waitraise(SIGABRT))</p>
+<ul>
+<li>causa sempre a termina&#xE7;&#xE3;o anormal do programa;</li>
+<li>&#xE9; enviado o sinal SIGABRT ao processo que a invocar;</li>
+<li>pode, no entanto, ser executado um signal handler para tratar este sinal para executar algumas tarefas antes de o processo terminar.</li>
+</ul>
+<p><strong>sleep</strong> (usleep, argumento em microsegundos)</p>
+<ul>
+<li>suspende o processo que a invocar, at&#xE9; que
+<ul>
+<li>se passem count segundos ( retorna 0) ou</li>
+<li>um sinal seja recebido pelo processo e o signal handler retorne (retorna o n&#xBA; de segundos que faltavam).</li>
+</ul>
+</li>
+</ul>
+<h2 class="mume-header" id="fun%C3%A7%C3%B5es-posix-p-sinais">Fun&#xE7;&#xF5;es POSIX p/ Sinais</h2>
+
+<p>A norma Posix estabelece uma forma alternativa de instala&#xE7;&#xE3;o de handlers, a fun&#xE7;&#xE3;o sigaction, e fun&#xE7;&#xF5;es de manipula&#xE7;&#xE3;o de uma m&#xE1;scara de sinais que pode ser utilizada para bloquear a entrega de sinais a um processo.</p>
+<h2 class="mume-header" id="manipula%C3%A7%C3%A3o-da-m%C3%A1scara-de-sinais">Manipula&#xE7;&#xE3;o da m&#xE1;scara de sinais</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">sigprocmask</span><span class="token punctuation">(</span><span class="token keyword">int</span> cmd<span class="token punctuation">,</span> <span class="token keyword">const</span> sigset_t <span class="token operator">*</span>new_mask<span class="token punctuation">,</span>
+sigset_t <span class="token operator">*</span>old_mask<span class="token punctuation">)</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+</pre><p>Alterar e/ ou obter a m&#xE1;scara de sinais de um processo.</p>
+<ul>
+<li>
+<p><strong>cmd</strong>:</p>
+<ul>
+<li>SIG_SETMASK - substituir a m&#xE1;scara actual por new_mask;</li>
+<li>SIG_BLOCK - acrescentar os sinais especificados em new_mask &#xE0; m&#xE1;scara actual;</li>
+<li>SIG_UNBLOCK - remover os sinais especificados em new_mask da m&#xE1;scara actual.</li>
+</ul>
+</li>
+<li>
+<p><strong>new_mask</strong>:</p>
+<ul>
+<li>se NULL a m&#xE1;scara atual n&#xE3;o &#xE9; alterada; usado apenas quando se quer apenas obter a m&#xE1;scara atual;</li>
+</ul>
+</li>
+<li>
+<p><strong>old_mask</strong>:</p>
+<ul>
+<li>se NULL a m&#xE1;scara atual n&#xE3;o &#xE9; retornada.</li>
+</ul>
+</li>
+</ul>
+<p><strong>sigset_t</strong> &#xE9; um tipo de dados constitu&#xED;do por um conjunto de bits, cada um representando um sinal.</p>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">sigemptyset</span><span class="token punctuation">(</span>sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">sigfillset</span><span class="token punctuation">(</span>sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">sigaddset</span><span class="token punctuation">(</span>sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">,</span> <span class="token keyword">int</span> sig_num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">sigdelset</span><span class="token punctuation">(</span>sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">,</span> <span class="token keyword">int</span> sig_num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+
+<span class="token keyword">int</span> <span class="token function">sigismember</span><span class="token punctuation">(</span><span class="token keyword">const</span> sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">,</span> <span class="token keyword">int</span> sig_num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">1</span> se flag activada ou <span class="token number">0</span> se n&#xE3;o<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+</pre><p>Alterar/ consultar a m&#xE1;scara de sinais de um processo.</p>
+<ul>
+<li>sigemptyset() - limpar todas as flags da m&#xE1;scara (Quando usado com sigpromask(SIG_SETMASK, sigmask, ...), todos os sinais passam);</li>
+<li>sigfillset() - ativar todas as flags da m&#xE1;scara;</li>
+<li>sigaddset() - ativar a flag do sinal sig_num na m&#xE1;scara;</li>
+<li>sigdelset() - limpar a flag do sinal sig_num na m&#xE1;scara;</li>
+<li>sigismember() - testar se a flag indicada por sig_num est&#xE1; ou n&#xE3;o activada.</li>
+</ul>
+<h2 class="mume-header" id="sinais-pendentes">Sinais pendentes</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">sigpending</span><span class="token punctuation">(</span>sigset_t <span class="token operator">*</span>sigpset<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+</pre><p>Retorna o conjunto de sinais que est&#xE3;o pendentes, por estarem bloqueados; permite especificar o tratamento a dar-lhe(s), antes de invocar sigprocmask() para desbloque&#xE1;-lo(s).</p>
+<h2 class="mume-header" id="instala%C3%A7%C3%A3o-de-um-handler">Instala&#xE7;&#xE3;o de um handler</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">sigaction</span><span class="token punctuation">(</span><span class="token keyword">int</span> signum<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">struct</span> sigaction <span class="token operator">*</span>action<span class="token punctuation">,</span>
+<span class="token keyword">struct</span> sigaction <span class="token operator">*</span>oldaction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">;</span> <span class="token operator">-</span><span class="token number">1</span> se ocorreu erro
+</pre><p>Permite examinar e/ ou modificar a a&#xE7;&#xE3;o associada a um sinal.</p>
+<ul>
+<li><strong>signum</strong> - n&#xBA; do sinal cuja a&#xE7;&#xE3;o se quer examinar ou modificar;</li>
+<li><strong>action</strong> - se <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo mathvariant="normal">&#x2260;</mo></mrow><annotation encoding="application/x-tex">\neq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel">&#xE020;</span></span><span class="fix"></span></span></span></span><span class="vlist-s">&#x200B;</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span></span></span></span> NULL estamos a modificar;</li>
+<li><strong>oldaction</strong> - se <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo mathvariant="normal">&#x2260;</mo></mrow><annotation encoding="application/x-tex">\neq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel">&#xE020;</span></span><span class="fix"></span></span></span></span><span class="vlist-s">&#x200B;</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span></span></span></span> NULL o sistema retorna a a&#xE7;&#xE3;o anteriormente associada ao sinal.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token keyword">struct</span> sigaction <span class="token punctuation">{</span>
+<span class="token keyword">void</span> <span class="token punctuation">(</span><span class="token operator">*</span>sa_handler<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">/* end.&#xBA; do handler ou SIG_IGN ou SIG_DFL */</span>
+sigset_t sa_mask<span class="token punctuation">;</span> <span class="token comment">/* sinais a acrescentar &#xE0; m&#xE1;scara */</span>
+<span class="token keyword">int</span> sa_flags<span class="token punctuation">;</span> <span class="token comment">/* modificam a ac&#xE7;&#xE3;o do sinal v. Stevens ou outro manual */</span>
+<span class="token punctuation">}</span>
+</pre><p>A fun&#xE7;&#xE3;o sigaction() substitu&#xED; a fun&#xE7;&#xE3;o signal() das primeiras vers&#xF5;es de Unix.<br>
+Os sinais especificados em sa_mask s&#xE3;o acrescentados &#xE0; m&#xE1;scara antes do handler ser invocado.<br>
+Se, e quando o handler retornar, a m&#xE1;scara &#xE9; reposta no estado anterior. Desta forma &#xE9; poss&#xED;vel bloquear certos sinais durante a execu&#xE7;&#xE3;o do handler.<br>
+O sinal recebido &#xE9; acrescentado automaticamente &#xE0; m&#xE1;scara, garantindo, deste modo, que outras ocorr&#xEA;ncias do sinal ser&#xE3;o bloqueadas at&#xE9; o processamento da actual ocorr&#xEA;ncia ter terminado.<br>
+Em geral, se um sinal ocorrer v&#xE1;rias vezes enquanto est&#xE1; bloqueado, s&#xF3; uma dessas ocorr&#xEA;ncias ser&#xE1; registada pelo sistema.<br>
+As sa_flags permitem especificar op&#xE7;&#xF5;es para o tratamento de alguns sinais (ex: se o sinal for SIGCHLD, especificar que este sinal n&#xE3;o deve ser gerado quando o processo filho for stopped (job control)).</p>
+<h2 class="mume-header" id="fun%C3%A7%C3%A3o-sigsuspend">Fun&#xE7;&#xE3;o sigsuspend</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;signal.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">sigsuspend</span><span class="token punctuation">(</span><span class="token keyword">const</span> sigset_t <span class="token operator">*</span>sigmask<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorno<span class="token operator">:</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> com errno<span class="token operator">=</span>EINTR
+</pre><p>Substitui a m&#xE1;scara de sinais do processo pela m&#xE1;scara especificada em sigmask e suspende a execu&#xE7;&#xE3;o do processo, retomando a execu&#xE7;&#xE3;o ap&#xF3;s a execu&#xE7;&#xE3;o de um handler de um sinal.<br>
+Se o sinal recebido terminar o programa, esta fun&#xE7;&#xE3;o nunca retorna.<br>
+Se o sinal n&#xE3;o terminar o programa, retorna -1, com errno=EINTR e a m&#xE1;scara de sinais do processo &#xE9; reposta com o valor que tinha antes da invoca&#xE7;&#xE3;o de sigsuspend().</p>
+<h2 class="mume-header" id="notas-finais">Notas finais</h2>
+
+<p>A utiliza&#xE7;&#xE3;o de sinais pode ser complexa.<br>
+&#xC9; preciso algum cuidado ao escrever os handlers porque eles podem ser chamados assincronamente (um handler pode ser chamado em qualquer ponto de um programa, de forma imprevis&#xED;vel).</p>
+<h4 class="mume-header" id="sinais-que-chegam-em-instantes-pr%C3%B3ximos">Sinais que chegam em instantes pr&#xF3;ximos</h4>
+
+<ul>
+<li>
+<p>Se 2 sinais chegarem durante um curto intervalo de tempo,<br>
+pode acontecer que durante a execu&#xE7;&#xE3;o de um handler de um sinal seja chamado um handler de outro sinal, diferente do primeiro (ver adiante).</p>
+</li>
+<li>
+<p>Se v&#xE1;rios sinais do mesmo tipo forem entregues a um processo antes que o handler tenha oportunidade de correr, o handler pode ser invocado apenas uma vez, como se s&#xF3; um sinal tivesse sido recebido.<br>
+Esta situa&#xE7;&#xE3;o pode acontecer quando o sinal est&#xE1; bloqueado ou quando o sistema est&#xE1; a executar outros processos enquanto os sinais s&#xE3;o entregues.</p>
+</li>
+</ul>
+<h4 class="mume-header" id="o-que-acontece-se-chegar-um-sinal-enquanto-um-handler-est%C3%A1-a-ocorrer">O que acontece se chegar um sinal enquanto um handler est&#xE1; a ocorrer?</h4>
+
+<ul>
+<li>
+<p>Quando o handler de um dado sinal &#xE9; invocado, esse sinal &#xE9;, normalmente, bloqueado at&#xE9; que o handler retorne.<br>
+Isto significa que, se 2 sinais do mesmo tipo chegarem em instantes muito pr&#xF3;ximos, o segundo ficar&#xE1; retido at&#xE9; que o handler retorne (o handler pode desbloquear explicitamente o sinal usando sigprocmask()).</p>
+</li>
+<li>
+<p>Um handler pode ser interrompido pela chegada de outro tipo de sinal. Quando se usa a chamada sigaction para especificar o handler, &#xE9; poss&#xED;vel evitar que isto aconte&#xE7;a, indicando que sinais devem ser bloqueados enquanto o handler estiver a correr.</p>
+</li>
+<li>
+<p>Nota: em algumas vers&#xF5;es antigas de Unix, quando o handler era estabelecido usando a fun&#xE7;&#xE3;o signal(), acontecia que a ac&#xE7;&#xE3;o associada ao sinal era automaticamente estabelecida como SIG_DFL, quando o sinal era tratado, pelo que o handler devia reinstalar-se de cada vez que executasse (!).<br>
+Nesta situa&#xE7;&#xE3;o, se chegassem 2 sinais do mesmo tipo em instantes de tempo muito pr&#xF3;ximos, podia acontecer que o 2&#xBA; sinal a chegar recebesse o tratamento por omiss&#xE3;o (devido ao facto de o handler ainda n&#xE3;o ter conseguido reinstalar-se), o que podia levar &#xE0; termina&#xE7;&#xE3;o do processo.</p>
+</li>
+</ul>
+<h4 class="mume-header" id="chamadas-ao-sistema-interrompidas-por-sinais">Chamadas ao sistema interrompidas por sinais</h4>
+
+<ul>
+<li>
+<p>&#xC9; preciso ter em conta que algumas chamadas ao sistema podem ser interrompidas em consequ&#xEA;ncia de ter sido recebido um sinal, enquanto elas estavam a ser executadas.</p>
+</li>
+<li>
+<p>Estas chamadas s&#xE3;o conhecidas por &quot;slow calls&quot;<br>
+ex:</p>
+<ul>
+<li>opera&#xE7;&#xF5;es de leitura/escrita num pipe, dispositivo terminal ou de rede, mas n&#xE3;o num disco;</li>
+<li>abertura de um ficheiro (ex: terminal) que pode bloquear at&#xE9; que ocorra uma dada condi&#xE7;&#xE3;o;;</li>
+<li>pause() e wait() e certas opera&#xE7;&#xF5;es ioctl()</li>
+<li>algumas fun&#xE7;&#xF5;es de intercomunica&#xE7;&#xE3;o entre processos (v. cap.s seguintes);</li>
+</ul>
+</li>
+<li>
+<p>Estas chamadas podem retornar um valor indicativo de erro (em geral, -1) e atribuir a errno o valor EINTR ou serem re-executadas, automaticamente, pelo sistema operativo.</p>
+</li>
+</ul>
 
       </div>
       
