@@ -499,3 +499,77 @@ ex:
 
 * Estas chamadas podem retornar um valor indicativo de erro (em geral, -1) e atribuir a errno o valor EINTR ou serem re-executadas, automaticamente, pelo sistema operativo.
 
+<h1 style="text-align: center;">Pipes e FIFOS</h1>
+
+## Pipes e FIFOS
+
+Os pipes são um mecanismo de comunicação que permite que dois ou mais processos a correr no mesmo computador enviem dados uns aos outros.
+Existem 2 tipos de pipes:
+
+* pipes sem nome (unnamed pipes ou apenas pipes):
+  - São half-duplex ou unidirecionais, ou seja, os dados só podem fluir num sentido;
+  - Só podem ser usados entre processos que tenham um antecessor comum (podem ser usados, por ex., por um pai e um filho ou por um pai e um neto, etc. No entanto se for um processo entre um pai e um neto, tem de ser o avo a criar o pipe).
+
+* pipes com nome (named pipes ou FIFOS):
+  - São half-duplex ou unidirecionais;
+  - Podem ser usados por processos não relacionados entre si;
+  - Têm um nome que os identifica, existente no sistema de ficheiros.
+
+## Pipes
+
+* Um pipe pode ser visto como um canal ligando 2 processos, permitindo um fluxo de informação unidireccional;
+* Esse canal tem uma certa capacidade de bufferização especificada pela constante **PIPE_BUF** (ou outra com nome semelhante, em <limits.h>);
+* Cada extremidade de um pipe tem associado um descritor de ficheiro;
+* Um pipe é criado usando a chamada de sistema pipe(), a qual devolve dois descritores, um representando a extremidade de escrita e outro a de leitura;
+* Para o programador, os pipes têm uma interface idêntica à dos ficheiros. Um processo escreve numa extremidade do pipe como para um ficheiro e o outro processo lê na outra extremidade;
+* Um pipe pode ser utilizado como um ficheiro ou em substituição do periférico de entrada ou de saída de um programa.
+
+```C
+#include <unistd.h>
+int pipe(int filedes[2]);
+
+Retorna: 0 se OK, -1 se houve erro.
+```
+
+A função retorna 2 descritores de ficheiros:
+
+* filedes[0]- está aberto para leitura;
+* filedes[1]- está aberto para escrita.
+
+```C
+# include <unistd.h>
+ssize_t read (int fd, char * buf, int count);
+ssize_t write (int fd, char * buf, int count);
+
+Retornam: nºde bytes lidos/escritos, 0 se EOF (só read),
+-1 se houve erro
+```
+
+## fdopen()
+
+```C
+# include <stdio.h>
+FILE * fdopen(int fildes, const char *mode)
+
+Retorna: FILE * se bem sucedida ou NULL se houve erro (e errno é actualizada)
+```
+
+* fdopen() associa uma stream a um descritor, filedes, já existente;
+* Desta forma, é possível aceder a um pipe usando as funções de leitura/ escrita da biblioteca standard de C: fscanf(), fprintf(), fread(), fwrite(), ...
+* O modo da stream (um dos valores "r", "r+", "w", "w+", "a", "a+") deve ser compatível com o modo do descritor do ficheiro. 
+
+## Pipes
+
+![](./Imagens/pipes1.png)
+
+* Normalmente, o processo que cria o pipe, invoca fork a seguir,
+criando assim um canal de comunicação entre pai e filho ou vice-versa.
+
+![](./Imagens/pipes2.png)
+
+* Só o processo que cria o pipe e os seus descendentes podem usar o pipe. Apos o fork, o processo filho herda os descritores do pai, ficando-se com a capacidade do processo pai escrever e ler, ou processo filho ler e escrever ou entao um deles lê e o outro escreve.
+
+* O que se faz depois da chamada fork depende do sentido em que se pretende o fluxo de dados.
+
+![](./Imagens/pipes3.png)
+

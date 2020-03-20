@@ -733,6 +733,81 @@ ex:</p>
 <p>Estas chamadas podem retornar um valor indicativo de erro (em geral, -1) e atribuir a errno o valor EINTR ou serem re-executadas, automaticamente, pelo sistema operativo.</p>
 </li>
 </ul>
+<h1 style="text-align: center;">Pipes e FIFOS</h1>
+<h2 class="mume-header" id="pipes-e-fifos">Pipes e FIFOS</h2>
+
+<p>Os pipes s&#xE3;o um mecanismo de comunica&#xE7;&#xE3;o que permite que dois ou mais processos a correr no mesmo computador enviem dados uns aos outros.<br>
+Existem 2 tipos de pipes:</p>
+<ul>
+<li>
+<p>pipes sem nome (unnamed pipes ou apenas pipes):</p>
+<ul>
+<li>S&#xE3;o half-duplex ou unidirecionais, ou seja, os dados s&#xF3; podem fluir num sentido;</li>
+<li>S&#xF3; podem ser usados entre processos que tenham um antecessor comum (podem ser usados, por ex., por um pai e um filho ou por um pai e um neto, etc. No entanto se for um processo entre um pai e um neto, tem de ser o avo a criar o pipe).</li>
+</ul>
+</li>
+<li>
+<p>pipes com nome (named pipes ou FIFOS):</p>
+<ul>
+<li>S&#xE3;o half-duplex ou unidirecionais;</li>
+<li>Podem ser usados por processos n&#xE3;o relacionados entre si;</li>
+<li>T&#xEA;m um nome que os identifica, existente no sistema de ficheiros.</li>
+</ul>
+</li>
+</ul>
+<h2 class="mume-header" id="pipes">Pipes</h2>
+
+<ul>
+<li>Um pipe pode ser visto como um canal ligando 2 processos, permitindo um fluxo de informa&#xE7;&#xE3;o unidireccional;</li>
+<li>Esse canal tem uma certa capacidade de bufferiza&#xE7;&#xE3;o especificada pela constante <strong>PIPE_BUF</strong> (ou outra com nome semelhante, em &lt;limits.h&gt;);</li>
+<li>Cada extremidade de um pipe tem associado um descritor de ficheiro;</li>
+<li>Um pipe &#xE9; criado usando a chamada de sistema pipe(), a qual devolve dois descritores, um representando a extremidade de escrita e outro a de leitura;</li>
+<li>Para o programador, os pipes t&#xEA;m uma interface id&#xEA;ntica &#xE0; dos ficheiros. Um processo escreve numa extremidade do pipe como para um ficheiro e o outro processo l&#xEA; na outra extremidade;</li>
+<li>Um pipe pode ser utilizado como um ficheiro ou em substitui&#xE7;&#xE3;o do perif&#xE9;rico de entrada ou de sa&#xED;da de um programa.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">pipe</span><span class="token punctuation">(</span><span class="token keyword">int</span> filedes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retorna<span class="token operator">:</span> <span class="token number">0</span> se OK<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> se houve erro<span class="token punctuation">.</span>
+</pre><p>A fun&#xE7;&#xE3;o retorna 2 descritores de ficheiros:</p>
+<ul>
+<li>filedes[0]- est&#xE1; aberto para leitura;</li>
+<li>filedes[1]- est&#xE1; aberto para escrita.</li>
+</ul>
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property"># <span class="token directive keyword">include</span> <span class="token string">&lt;unistd.h&gt;</span></span>
+ssize_t <span class="token function">read</span> <span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span> buf<span class="token punctuation">,</span> <span class="token keyword">int</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ssize_t <span class="token function">write</span> <span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span> buf<span class="token punctuation">,</span> <span class="token keyword">int</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Retornam<span class="token operator">:</span> n&#xBA;de bytes lidos<span class="token operator">/</span>escritos<span class="token punctuation">,</span> <span class="token number">0</span> se <span class="token constant">EOF</span> <span class="token punctuation">(</span>s&#xF3; read<span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token operator">-</span><span class="token number">1</span> se houve erro
+</pre><h2 class="mume-header" id="fdopen">fdopen()</h2>
+
+<pre data-role="codeBlock" data-info="C" class="language-c"><span class="token macro property"># <span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h&gt;</span></span>
+FILE <span class="token operator">*</span> <span class="token function">fdopen</span><span class="token punctuation">(</span><span class="token keyword">int</span> fildes<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>mode<span class="token punctuation">)</span>
+
+Retorna<span class="token operator">:</span> FILE <span class="token operator">*</span> se bem sucedida ou <span class="token constant">NULL</span> se houve <span class="token function">erro</span> <span class="token punctuation">(</span>e errno &#xE9; actualizada<span class="token punctuation">)</span>
+</pre><ul>
+<li>fdopen() associa uma stream a um descritor, filedes, j&#xE1; existente;</li>
+<li>Desta forma, &#xE9; poss&#xED;vel aceder a um pipe usando as fun&#xE7;&#xF5;es de leitura/ escrita da biblioteca standard de C: fscanf(), fprintf(), fread(), fwrite(), ...</li>
+<li>O modo da stream (um dos valores &quot;r&quot;, &quot;r+&quot;, &quot;w&quot;, &quot;w+&quot;, &quot;a&quot;, &quot;a+&quot;) deve ser compat&#xED;vel com o modo do descritor do ficheiro.</li>
+</ul>
+<h2 class="mume-header" id="pipes-1">Pipes</h2>
+
+<p><img src="./Imagens/pipes1.png" alt></p>
+<ul>
+<li>Normalmente, o processo que cria o pipe, invoca fork a seguir,<br>
+criando assim um canal de comunica&#xE7;&#xE3;o entre pai e filho ou vice-versa.</li>
+</ul>
+<p><img src="./Imagens/pipes2.png" alt></p>
+<ul>
+<li>
+<p>S&#xF3; o processo que cria o pipe e os seus descendentes podem usar o pipe. Apos o fork, o processo filho herda os descritores do pai, ficando-se com a capacidade do processo pai escrever e ler, ou processo filho ler e escrever ou entao um deles l&#xEA; e o outro escreve.</p>
+</li>
+<li>
+<p>O que se faz depois da chamada fork depende do sentido em que se pretende o fluxo de dados.</p>
+</li>
+</ul>
+<p><img src="./Imagens/pipes3.png" alt></p>
 
       </div>
       
