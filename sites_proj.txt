@@ -1,8 +1,0 @@
-https://codeforwin.org/2018/03/c-program-to-list-all-files-in-a-directory-recursively.html
-https://stackoverflow.com/questions/8436841/how-to-recursively-list-directories-in-c-on-linux
-https://www.geeksforgeeks.org/c-program-list-files-sub-directories-directory/
-https://stackoverflow.com/questions/8236/how-do-you-determine-the-size-of-a-file-in-c
-https://www.includehelp.com/c-programs/find-size-of-file.aspx
-https://github.com/Gaspar99
-https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html
-https://github.com/pedrovfranco/FEUP-SOPE
